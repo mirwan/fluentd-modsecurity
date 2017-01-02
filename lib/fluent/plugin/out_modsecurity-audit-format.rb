@@ -9,18 +9,26 @@
 class ModsecurityAuditFormat < Fluent::Output
   Fluent::Plugin.register_output('modsecurity-audit-format', self)
 
+  config_param :tag , :string
+  config_param :output_field, :string, :default => nil
+
   # Override the 'configure_parser(conf)' method.
   # You can get config parameters in this method.
   def configure(conf)
     super
     @tag = conf['tag']
+    @output_field = conf['output_field'] 
   end
 
    # Convert the raw message and re-emit
    def emit(tag, es, chain)
     es.each do |time,record|
-      modsecRecord = convertToModsecRecord(record['message'])
-      Fluent::Engine.emit(@tag, time, modsecRecord)
+      if @output_field.nil?
+        record = convertToModsecRecord(record['message'])
+      else
+        record[@output_field] = convertToModsecRecord(record['message'])
+      end
+      Fluent::Engine.emit(@tag, time, record)
       chain.next
     end
    end
@@ -266,7 +274,10 @@ class ModsecurityAuditFormat < Fluent::Output
        
        hash['audit_log_trailer'].delete('Message')
        hash['audit_log_trailer']['messages'] = auditLogTrailerMessages
-        
+
+       # total inbound score
+       extractVal(/Inbound Anomaly Score Exceeded \(Total Inbound Score: (\d+),.*/,hash['audit_log_trailer']['messages'].last['msg'], hash, 'score')
+
      end
      
      
