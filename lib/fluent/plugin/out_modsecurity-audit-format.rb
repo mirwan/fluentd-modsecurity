@@ -276,7 +276,7 @@ class ModsecurityAuditFormat < Fluent::Output
        hash['audit_log_trailer']['messages'] = auditLogTrailerMessages
 
        # total inbound score
-       extractVal(/Inbound Anomaly Score Exceeded \(Total Inbound Score: (\d+),.*/,hash['audit_log_trailer']['messages'].last['msg'], hash, 'score')
+       extractVal(/.*\(Total(?: (Out|In)bound)? Score: (\d+)[, ].*/,hash['audit_log_trailer']['messages'].last['msg'], hash, 'score')
 
      end
      
