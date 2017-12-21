@@ -28,7 +28,7 @@ class ModsecurityAuditFormat < Fluent::Output
       else
         record[@output_field] = convertToModsecRecord(record['message'])
       end
-      Fluent::Engine.emit(@tag, time, record)
+      router.emit(@tag, time, record)
       chain.next
     end
    end
